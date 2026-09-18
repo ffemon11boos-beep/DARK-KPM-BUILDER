@@ -1,0 +1,36 @@
+name: Build Dark KPM Module
+
+on:
+  push:
+    branches: [ main ] # অথবা আপনার ব্যবহার করা ব্রাঞ্চের নাম
+  workflow_dispatch: # চাইলে ম্যানুয়ালিও চালাতে পারবেন
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive' # KernelPatch সাবমডিউল আনার জন্য
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+
+    - name: Clone KernelPatch
+      run: git clone --depth=1 https://github.com/bmax121/KernelPatch.git ../KernelPatch
+
+    - name: Build KPM Module
+      run: |
+        # আপনার C ফাইলের নাম অনুযায়ী নিচের লাইনটি পরিবর্তন করুন
+        # যেমন: dark_kpm.c ফাইলটি রিপোজিটরির রুটে থাকলে:
+        make TARGET_COMPILE=aarch64-linux-gnu- KP_DIR=../KernelPatch
+
+    - name: Upload KPM Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dark-kpm-module
+        path: '*.kpm' # বিল্ড হওয়া .kpm ফাইলটি খুঁজে নেবে
